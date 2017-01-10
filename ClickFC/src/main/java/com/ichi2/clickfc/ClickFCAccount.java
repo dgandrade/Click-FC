@@ -122,6 +122,11 @@ public class ClickFCAccount extends AnkiActivity {
     private void saveClickFCUserInformation(String username, String ninjakey, List<Produto> result) {
         SharedPreferences preferences = ClickFCApp.getSharedPrefs(getBaseContext());
         Editor editor = preferences.edit();
+        editor.remove("username");
+        editor.remove("hkey");
+        editor.remove("ninjaproducts");
+
+        //After cleaning the data
         editor.putString("username", username);
         editor.putString("hkey", ninjakey);
 

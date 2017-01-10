@@ -32,6 +32,7 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.database.Cursor;
 import android.database.SQLException;
 import android.graphics.PixelFormat;
 import android.net.Uri;
@@ -91,9 +92,12 @@ import com.ichi2.async.Connection.Payload;
 import com.ichi2.async.DeckTask;
 import com.ichi2.async.DeckTask.TaskData;
 import com.ichi2.compat.CompatHelper;
+import com.ichi2.libanki.Card;
 import com.ichi2.libanki.Collection;
+import com.ichi2.libanki.Decks;
 import com.ichi2.libanki.Models;
 import com.ichi2.libanki.Sched;
+import com.ichi2.libanki.Storage;
 import com.ichi2.libanki.Utils;
 import com.ichi2.libanki.importer.AnkiPackageImporter;
 import com.ichi2.themes.StyledProgressDialog;
@@ -105,11 +109,13 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.TreeMap;
+import java.util.zip.ZipFile;
 
 import timber.log.Timber;
 
@@ -643,7 +649,38 @@ public class DeckPicker extends NavigationDrawerActivity implements
             case R.id.action_export:
                 Timber.i("DeckPicker:: Export collection button pressed");
                 String msg = getResources().getString(R.string.confirm_apkg_export);
-                showDialogFragment(ExportDialog.newInstance(msg));
+
+                SharedPreferences preferences = ClickFCApp.getSharedPrefs(getBaseContext());
+                String hkey = preferences.getString("username", "");
+                if (hkey.length() == 0) {
+                    Timber.d("Going to register page");
+                    loginToSyncServer();
+                }else {
+                    List <Produto> products_list;
+                    String produts_str = ClickFCApp.getSharedPrefs(getBaseContext()).getString("ninjaproducts", "");
+
+                    Gson gson = new Gson();
+                    Type listOfTestObject = new TypeToken<List<Produto>>() {
+                    }.getType();
+
+                    products_list = gson.fromJson(produts_str, listOfTestObject);
+
+                    if((products_list !=null)&&(products_list.size()>0)){
+                        ArrayList<String> prod_ids = new ArrayList<>();
+                        for(Produto product:products_list){
+                            if(product.isMine()){
+                                prod_ids.add(product.getKey());
+                            }
+
+                        }
+                        msg = getResources().getString(R.string.confirm_apkg_export);
+
+                        showDialogFragment(ExportDialog.newInstance(prod_ids,products_list,msg));
+                    }else{
+                        showSimpleNotification("Sync error",getResources().getString(R.string.deck_ninja_empty));
+                    }
+                }
+
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -1605,11 +1642,53 @@ public class DeckPicker extends NavigationDrawerActivity implements
         if (hkey.length() == 0) {
             Timber.d("Going to register page");
             loginToSyncServer();
-        }else {
-            DeckTask.launchDeckTask(DeckTask.TASK_TYPE_IMPORT, mImportAddListener,
-                        new TaskData(importPath, false));
-        }
+        } else {
+            //Temp dir to check temp data
+            File tempDir = new File(new File(getCol().getPath()).getParent(), "tmpzip");
+            try {
+                // extract the deck from the zip file
+                ZipFile mZip = new ZipFile(new File(importPath), ZipFile.OPEN_READ);
+                Utils.unzipFiles(mZip, tempDir.getAbsolutePath(), new String[]{"collection.anki2", "media"}, null);
+            } catch (IOException e) {
+                Timber.e(e, "Failed to unzip apkg.");
+                showSimpleNotification("Error", getResources().getString(R.string.import_log_no_apkg));
+                return;
+            }
+            String colpath = new File(tempDir, "collection.anki2").getAbsolutePath();
+            if (!(new File(colpath)).exists()) {
+                showSimpleNotification("Error", getResources().getString(R.string.import_log_no_apkg));
+                return;
+            }
+            Collection tmpCol = Storage.Collection(getBaseContext(), colpath);
+            Cursor cur = tmpCol.getDb().getDatabase()
+                    .rawQuery("SELECT id FROM cards ORDER BY ord", null);
+            while (cur.moveToNext()) {
+                Card cc = tmpCol.getCard(cur.getLong(0));
+                String[] prod_id_key = Utils.splitFields(cc.getData());
 
+                //Open current products list
+                List <Produto> products_list;
+                String produts_str = ClickFCApp.getSharedPrefs(getBaseContext()).getString("ninjaproducts", "");
+
+                Gson gson = new Gson();
+                Type listOfTestObject = new TypeToken<List<Produto>>() {
+                }.getType();
+
+                products_list = gson.fromJson(produts_str, listOfTestObject);
+
+                if((products_list !=null)&&(products_list.size()>0)){
+                    for(Produto product:products_list){
+                        if(product.isMine()){
+                            if(product.getId() == Integer.parseInt(prod_id_key[0])){
+                                DeckTask.launchDeckTask(DeckTask.TASK_TYPE_IMPORT, mImportAddListener,new TaskData(importPath, false));
+                            }
+                        }
+                    }
+                }else{
+                    showSimpleNotification("Sync error",getResources().getString(R.string.deck_ninja_empty));
+                }
+            }//end while
+        }
     }
 
 
@@ -1621,8 +1700,53 @@ public class DeckPicker extends NavigationDrawerActivity implements
         if (hkey.length() == 0) {
             Timber.d("Going to register page");
             loginToSyncServer();
-        }else {
-            DeckTask.launchDeckTask(DeckTask.TASK_TYPE_IMPORT_REPLACE, mImportReplaceListener, new TaskData(importPath));
+        } else {
+            //Temp dir to check temp data
+            File tempDir = new File(new File(getCol().getPath()).getParent(), "tmpzip");
+            try {
+                // extract the deck from the zip file
+                ZipFile mZip = new ZipFile(new File(importPath), ZipFile.OPEN_READ);
+                Utils.unzipFiles(mZip, tempDir.getAbsolutePath(), new String[]{"collection.anki2", "media"}, null);
+            } catch (IOException e) {
+                Timber.e(e, "Failed to unzip apkg.");
+                showSimpleNotification("Error", getResources().getString(R.string.import_log_no_apkg));
+                return;
+            }
+            String colpath = new File(tempDir, "collection.anki2").getAbsolutePath();
+            if (!(new File(colpath)).exists()) {
+                showSimpleNotification("Error", getResources().getString(R.string.import_log_no_apkg));
+                return;
+            }
+            Collection tmpCol = Storage.Collection(getBaseContext(), colpath);
+            Cursor cur = tmpCol.getDb().getDatabase()
+                    .rawQuery("SELECT id FROM cards ORDER BY ord", null);
+            while (cur.moveToNext()) {
+                Card cc = tmpCol.getCard(cur.getLong(0));
+                String[] prod_id_key = Utils.splitFields(cc.getData());
+
+                //Open current products list
+                List <Produto> products_list;
+                String produts_str = ClickFCApp.getSharedPrefs(getBaseContext()).getString("ninjaproducts", "");
+
+                Gson gson = new Gson();
+                Type listOfTestObject = new TypeToken<List<Produto>>() {
+                }.getType();
+
+                products_list = gson.fromJson(produts_str, listOfTestObject);
+
+                if((products_list !=null)&&(products_list.size()>0)){
+                    for(Produto product:products_list){
+                        if(product.isMine()){
+                            if(product.getId() == Integer.parseInt(prod_id_key[0])){
+                                DeckTask.launchDeckTask(DeckTask.TASK_TYPE_IMPORT_REPLACE, mImportReplaceListener, new TaskData(importPath));
+                            }
+                        }
+                    }
+                }else{
+                    showSimpleNotification("Sync error",getResources().getString(R.string.deck_ninja_empty));
+                }
+            }//end while
+
         }
     }
 
@@ -1952,7 +2076,8 @@ public class DeckPicker extends NavigationDrawerActivity implements
             loginToSyncServer();
         }else {
             List <Produto> products_list;
-            //try {
+            String msg;
+            try {
             String produts_str = ClickFCApp.getSharedPrefs(getBaseContext()).getString("ninjaproducts", "");
 
             Gson gson = new Gson();
@@ -1969,17 +2094,17 @@ public class DeckPicker extends NavigationDrawerActivity implements
                     }
 
                 }
-                //msg = getResources().getString(R.string.confirm_apkg_export_deck, getCol().getDecks().get(mContextMenuDid).get("name"));
+                msg = getResources().getString(R.string.confirm_apkg_export_deck, getCol().getDecks().get(mContextMenuDid).get("name"));
 
-                showDialogFragment(ExportDialog.newInstance(prod_ids,products_list,mContextMenuDid));
+                showDialogFragment(ExportDialog.newInstance(prod_ids,products_list,mContextMenuDid,msg));
             }else{
                 showSimpleNotification("Sync error",getResources().getString(R.string.deck_ninja_empty));
 
             }
 
-            //} catch (JSONException e) {
-            //    throw new RuntimeException(e);
-            //}
+            } catch (JSONException e) {
+                throw new RuntimeException(e);
+            }
 
         }
     }

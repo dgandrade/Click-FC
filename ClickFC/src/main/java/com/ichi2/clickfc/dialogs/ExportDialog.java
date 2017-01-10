@@ -15,11 +15,11 @@ import java.util.List;
 
 public class ExportDialog extends DialogFragment {
 
-    public static DialogFragment newInstance(List<String> products_keys,List<Produto> produtos, Long did) {
+    public static DialogFragment newInstance(List<String> products_keys,List<Produto> produtos, Long did,String dialogMessage) {
         ExportDialog f = new ExportDialog();
         Bundle args = new Bundle();
         args.putLong("did", did);
-        //args.putString("dialogMessage", dialogMessage);
+        args.putString("dialogMessage", dialogMessage);
         f.mProducts = products_keys;
         f.mProducList = produtos;
         f.setArguments(args);
@@ -57,10 +57,12 @@ public class ExportDialog extends DialogFragment {
     }
 
 
-    public static ExportDialog newInstance(@NonNull String dialogMessage) {
+    public static ExportDialog newInstance(List<String> products_keys,List<Produto> produtos,@NonNull String dialogMessage) {
         ExportDialog f = new ExportDialog();
         Bundle args = new Bundle();
         args.putString("dialogMessage", dialogMessage);
+        f.mProducts = products_keys;
+        f.mProducList = produtos;
         f.setArguments(args);
         return f;
     }
@@ -84,7 +86,7 @@ public class ExportDialog extends DialogFragment {
 
         MaterialDialog.Builder builder = new MaterialDialog.Builder(getActivity())
                 .title(R.string.export)
-                //.content(getArguments().getString("dialogMessage"))
+                .content(getArguments().getString("dialogMessage"))
                 .positiveText(android.R.string.ok)
                 .negativeText(android.R.string.cancel)
                 .cancelable(true)
