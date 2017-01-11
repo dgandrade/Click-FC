@@ -1323,7 +1323,7 @@ public class DeckPicker extends NavigationDrawerActivity implements
     // Sync with Anki Web
     @Override
     public void sync() {
-        sync(null);
+        //sync(null);
     }
 
 
@@ -1675,14 +1675,18 @@ public class DeckPicker extends NavigationDrawerActivity implements
                 }.getType();
 
                 products_list = gson.fromJson(produts_str, listOfTestObject);
-
+                boolean not_found = true;
                 if((products_list !=null)&&(products_list.size()>0)){
                     for(Produto product:products_list){
                         if(product.isMine()){
                             if(product.getId() == Integer.parseInt(prod_id_key[0])){
+                                not_found=false;
                                 DeckTask.launchDeckTask(DeckTask.TASK_TYPE_IMPORT, mImportAddListener,new TaskData(importPath, false));
                             }
                         }
+                    }
+                    if(not_found){
+                        showSimpleNotification("Sync error",getResources().getString(R.string.deck_ninja_empty));
                     }
                 }else{
                     showSimpleNotification("Sync error",getResources().getString(R.string.deck_ninja_empty));
@@ -1733,14 +1737,19 @@ public class DeckPicker extends NavigationDrawerActivity implements
                 }.getType();
 
                 products_list = gson.fromJson(produts_str, listOfTestObject);
+                boolean not_found = true;
 
                 if((products_list !=null)&&(products_list.size()>0)){
                     for(Produto product:products_list){
                         if(product.isMine()){
                             if(product.getId() == Integer.parseInt(prod_id_key[0])){
+                                not_found=false;
                                 DeckTask.launchDeckTask(DeckTask.TASK_TYPE_IMPORT_REPLACE, mImportReplaceListener, new TaskData(importPath));
                             }
                         }
+                    }
+                    if(not_found){
+                        showSimpleNotification("Sync error",getResources().getString(R.string.deck_ninja_empty));
                     }
                 }else{
                     showSimpleNotification("Sync error",getResources().getString(R.string.deck_ninja_empty));

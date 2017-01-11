@@ -150,7 +150,7 @@
     <string name="export_include_schedule">Include scheduling</string>
     <string name="export_include_media">Include media</string>
     <string name="confirm_apkg_export">Export collection as clickfc file?</string>
-    <string name="confirm_apkg_export_export_deck">Export “%s” as clickfc file?</string>
+    <string name="confirm_apkg_export_deck">Export “%s” as clickfc file?</string>
     <string name="export_in_progress">Exporting clickfc file…</string>
     <string name="export_successful_title">Email clickfc?</string>
     <string name="export_successful">File “%s” was exported. Do you want to email it?</string>
