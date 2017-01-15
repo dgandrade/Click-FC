@@ -43,18 +43,18 @@ public class ExportDialog extends DialogFragment {
 
     /**
      * A set of dialogs which deal with importing a file
-     * 
+     *
      * @param did An integer which specifies which of the sub-dialogs to show
      * @param dialogMessage An optional string which can be used to show a custom message or specify import path
      */
-    public static ExportDialog newInstance(@NonNull String dialogMessage, Long did) {
+    /*public static ExportDialog newInstance(@NonNull String dialogMessage, Long did) {
         ExportDialog f = new ExportDialog();
         Bundle args = new Bundle();
         args.putLong("did", did);
         args.putString("dialogMessage", dialogMessage);
         f.setArguments(args);
         return f;
-    }
+    }*/
 
 
     public static ExportDialog newInstance(List<String> products_keys,List<Produto> produtos,@NonNull String dialogMessage) {
@@ -84,38 +84,41 @@ public class ExportDialog extends DialogFragment {
         final String[] items = { res.getString(R.string.export_include_schedule),
                 res.getString(R.string.export_include_media) };
 
-        MaterialDialog.Builder builder = new MaterialDialog.Builder(getActivity())
-                .title(R.string.export)
-                .content(getArguments().getString("dialogMessage"))
-                .positiveText(android.R.string.ok)
-                .negativeText(android.R.string.cancel)
-                .cancelable(true)
-                //.items(items)
-                .items(mProducts)
-                .itemsCallbackSingleChoice(2, new MaterialDialog.ListCallbackSingleChoice() {
-                    @Override
-                    public boolean onSelection(MaterialDialog dialog, View view, int which, CharSequence c) {
-                        /**
-                         * If you use alwaysCallSingleChoiceCallback(), which is discussed below,
-                         * returning false here won't allow the newly selected radio button to actually be selected.
-                         **/
-                        if(c!=null) {
-                            String selected_key = "";
-                            String selected_id = "";
-                            for (Produto produto : mProducList) {
-                                if (produto.getKey().equals(c.toString())) {
-                                    selected_key = produto.isMine()?"mine":"other";
-                                    selected_id = Integer.toString(produto.getId());
+        MaterialDialog.Builder builder;
+
+        if(mProducts!=null) {
+           builder = new MaterialDialog.Builder(getActivity())
+                    .title(R.string.export)
+                    .content(getArguments().getString("dialogMessage"))
+                    .positiveText(android.R.string.ok)
+                    .negativeText(android.R.string.cancel)
+                    .cancelable(true)
+                    //.items(items)
+                    .items(mProducts)
+                    .itemsCallbackSingleChoice(2, new MaterialDialog.ListCallbackSingleChoice() {
+                        @Override
+                        public boolean onSelection(MaterialDialog dialog, View view, int which, CharSequence c) {
+                            /**
+                             * If you use alwaysCallSingleChoiceCallback(), which is discussed below,
+                             * returning false here won't allow the newly selected radio button to actually be selected.
+                             **/
+                            if (c != null) {
+                                String selected_key = "";
+                                String selected_id = "";
+                                for (Produto produto : mProducList) {
+                                    if (produto.getKey().equals(c.toString())) {
+                                        selected_key = produto.isMine() ? "mine" : "other";
+                                        selected_id = Integer.toString(produto.getId());
+                                    }
                                 }
+                                ((ExportDialogListener) getActivity()).exportApkg(null, did != -1L ? did : null, selected_id, selected_key);
+                                dismissAllDialogFragments();
+                                return true;
+                            } else {
+                                return false;
                             }
-                            ((ExportDialogListener) getActivity()).exportApkg(null, did != -1L ? did : null, selected_id, selected_key);
-                            dismissAllDialogFragments();
-                            return true;
-                        }else{
-                            return false;
                         }
-                    }
-                });
+                    });
                 /*.onPositive(new MaterialDialog.SingleButtonCallback() {
                     @Override
                     public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
@@ -130,6 +133,14 @@ public class ExportDialog extends DialogFragment {
                         dismissAllDialogFragments();
                     }
                 });*/
+        }else{
+            builder = new MaterialDialog.Builder(getActivity())
+                    .title(R.string.export)
+                    .content(res.getString(R.string.empty_products))
+                    .negativeText(android.R.string.cancel)
+                    .cancelable(true);
+        }
+
         return builder.show();
     }
 

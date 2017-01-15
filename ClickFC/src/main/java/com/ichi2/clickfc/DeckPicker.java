@@ -39,6 +39,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Message;
 import android.provider.Settings;
+import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.DialogFragment;
@@ -60,6 +61,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.clicfc.model.Produto;
 import com.getbase.floatingactionbutton.FloatingActionButton;
@@ -1682,6 +1684,7 @@ public class DeckPicker extends NavigationDrawerActivity implements
                             if(product.getId() == Integer.parseInt(prod_id_key[0])){
                                 not_found=false;
                                 DeckTask.launchDeckTask(DeckTask.TASK_TYPE_IMPORT, mImportAddListener,new TaskData(importPath, false));
+                                updateDeckList();
                             }
                         }
                     }
@@ -1745,6 +1748,7 @@ public class DeckPicker extends NavigationDrawerActivity implements
                             if(product.getId() == Integer.parseInt(prod_id_key[0])){
                                 not_found=false;
                                 DeckTask.launchDeckTask(DeckTask.TASK_TYPE_IMPORT_REPLACE, mImportReplaceListener, new TaskData(importPath));
+                                updateDeckList();
                             }
                         }
                     }
@@ -2077,45 +2081,7 @@ public class DeckPicker extends NavigationDrawerActivity implements
 
     // Callback to show export dialog for currently selected deck
     public void showContextMenuExportDialog() {
-        //exportDeck(mContextMenuDid);
-        SharedPreferences preferences = ClickFCApp.getSharedPrefs(getBaseContext());
-        String hkey = preferences.getString("username", "");
-        if (hkey.length() == 0) {
-            Timber.d("Going to register page");
-            loginToSyncServer();
-        }else {
-            List <Produto> products_list;
-            String msg;
-            try {
-            String produts_str = ClickFCApp.getSharedPrefs(getBaseContext()).getString("ninjaproducts", "");
-
-            Gson gson = new Gson();
-            Type listOfTestObject = new TypeToken<List<Produto>>() {
-            }.getType();
-
-            products_list = gson.fromJson(produts_str, listOfTestObject);
-
-            if((products_list !=null)&&(products_list.size()>0)){
-                ArrayList<String> prod_ids = new ArrayList<>();
-                for(Produto product:products_list){
-                    if(product.isMine()){
-                        prod_ids.add(product.getKey());
-                    }
-
-                }
-                msg = getResources().getString(R.string.confirm_apkg_export_deck, getCol().getDecks().get(mContextMenuDid).get("name"));
-
-                showDialogFragment(ExportDialog.newInstance(prod_ids,products_list,mContextMenuDid,msg));
-            }else{
-                showSimpleNotification("Sync error",getResources().getString(R.string.deck_ninja_empty));
-
-            }
-
-            } catch (JSONException e) {
-                throw new RuntimeException(e);
-            }
-
-        }
+        exportDeck(mContextMenuDid);
     }
     public void exportDeck(long did) {
         String msg;
@@ -2124,7 +2090,43 @@ public class DeckPicker extends NavigationDrawerActivity implements
         } catch (JSONException e) {
             throw new RuntimeException(e);
         }
-        showDialogFragment(ExportDialog.newInstance(msg, did));
+        SharedPreferences preferences = ClickFCApp.getSharedPrefs(getBaseContext());
+        String hkey = preferences.getString("username", "");
+        if (hkey.length() == 0) {
+            Timber.d("Going to register page");
+            loginToSyncServer();
+        }else {
+            List <Produto> products_list;
+            try {
+                String produts_str = ClickFCApp.getSharedPrefs(getBaseContext()).getString("ninjaproducts", "");
+
+                Gson gson = new Gson();
+                Type listOfTestObject = new TypeToken<List<Produto>>() {
+                }.getType();
+
+                products_list = gson.fromJson(produts_str, listOfTestObject);
+
+                if((products_list !=null)&&(products_list.size()>0)){
+                    ArrayList<String> prod_ids = new ArrayList<>();
+                    for(Produto product:products_list){
+                        if(product.isMine()){
+                            prod_ids.add(product.getKey());
+                        }
+
+                    }
+                    msg = getResources().getString(R.string.confirm_apkg_export_deck, getCol().getDecks().get(mContextMenuDid).get("name"));
+
+                    showDialogFragment(ExportDialog.newInstance(prod_ids,products_list,did,msg));
+                }else{
+                    showSimpleNotification("Sync error",getResources().getString(R.string.deck_ninja_empty));
+
+                }
+
+            } catch (JSONException e) {
+                throw new RuntimeException(e);
+            }
+
+        }
     }
 
 
@@ -2145,9 +2147,9 @@ public class DeckPicker extends NavigationDrawerActivity implements
                 .customView(mDialogEditText, true)
                 .positiveText(res.getString(R.string.rename))
                 .negativeText(res.getString(R.string.dialog_cancel))
-                .callback(new MaterialDialog.ButtonCallback() {
+                .onPositive(new MaterialDialog.SingleButtonCallback() {
                     @Override
-                    public void onPositive(MaterialDialog dialog) {
+                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
                         String newName = mDialogEditText.getText().toString().replaceAll("\"", "");
                         Collection col = getCol();
                         if (!TextUtils.isEmpty(newName) && !newName.equals(currentName)) {
@@ -2165,9 +2167,10 @@ public class DeckPicker extends NavigationDrawerActivity implements
                             loadStudyOptionsFragment(false);
                         }
                     }
-
+                })
+                .onNegative(new MaterialDialog.SingleButtonCallback() {
                     @Override
-                    public void onNegative(MaterialDialog dialog) {
+                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
                         dismissAllDialogFragments();
                     }
                 })
