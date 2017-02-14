@@ -110,7 +110,10 @@ import com.ichi2.widget.WidgetStatus;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -1650,51 +1653,63 @@ public class DeckPicker extends NavigationDrawerActivity implements
             try {
                 // extract the deck from the zip file
                 ZipFile mZip = new ZipFile(new File(importPath), ZipFile.OPEN_READ);
-                Utils.unzipFiles(mZip, tempDir.getAbsolutePath(), new String[]{"collection.anki2", "media"}, null);
+                Utils.unzipFiles(mZip, tempDir.getAbsolutePath(), new String[]{"collection.anki2", "media","clickf_keys"}, null);
             } catch (IOException e) {
                 Timber.e(e, "Failed to unzip apkg.");
-                showSimpleNotification("Error", getResources().getString(R.string.import_log_no_apkg));
+                showSimpleNotification("Error", getResources().getString(R.string.import_log_no_clickfc));
                 return;
             }
+
             String colpath = new File(tempDir, "collection.anki2").getAbsolutePath();
             if (!(new File(colpath)).exists()) {
-                showSimpleNotification("Error", getResources().getString(R.string.import_log_no_apkg));
+                showSimpleNotification("Error", getResources().getString(R.string.import_log_no_clickfc));
                 return;
             }
-            Collection tmpCol = Storage.Collection(getBaseContext(), colpath);
-            Cursor cur = tmpCol.getDb().getDatabase()
-                    .rawQuery("SELECT id FROM cards ORDER BY ord", null);
-            while (cur.moveToNext()) {
-                Card cc = tmpCol.getCard(cur.getLong(0));
-                String[] prod_id_key = Utils.splitFields(cc.getData());
 
-                //Open current products list
-                List <Produto> products_list;
-                String produts_str = ClickFCApp.getSharedPrefs(getBaseContext()).getString("ninjaproducts", "");
+            String clickf_keys = new File(tempDir, "clickf_keys").getAbsolutePath();
+            if (!(new File(clickf_keys)).exists()) {
+                showSimpleNotification("Error", getResources().getString(R.string.import_log_no_clickfc));
+                return;
+            } else {
+                try {
+                    FileReader fileReader = new FileReader(clickf_keys);
+                    BufferedReader lerArq = new BufferedReader(fileReader);
+                    String linha = lerArq.readLine();
+                    String[] prod_id_key = Utils.splitFields(linha);
 
-                Gson gson = new Gson();
-                Type listOfTestObject = new TypeToken<List<Produto>>() {
-                }.getType();
+                    //Open current products list
+                    List <Produto> products_list;
+                    String produts_str = ClickFCApp.getSharedPrefs(getBaseContext()).getString("ninjaproducts", "");
 
-                products_list = gson.fromJson(produts_str, listOfTestObject);
-                boolean not_found = true;
-                if((products_list !=null)&&(products_list.size()>0)){
-                    for(Produto product:products_list){
-                        if(product.isMine()){
-                            if(product.getId() == Integer.parseInt(prod_id_key[0])){
-                                not_found=false;
-                                DeckTask.launchDeckTask(DeckTask.TASK_TYPE_IMPORT, mImportAddListener,new TaskData(importPath, false));
-                                updateDeckList();
+                    Gson gson = new Gson();
+                    Type listOfTestObject = new TypeToken<List<Produto>>() {
+                    }.getType();
+
+                    products_list = gson.fromJson(produts_str, listOfTestObject);
+                    boolean not_found = true;
+
+                    if((products_list !=null)&&(products_list.size()>0)){
+                        for(Produto product:products_list){
+                            if(product.isMine()){
+                                if(product.getId() == Integer.parseInt(prod_id_key[0])){
+                                    not_found=false;
+                                    DeckTask.launchDeckTask(DeckTask.TASK_TYPE_IMPORT_REPLACE, mImportReplaceListener, new TaskData(importPath));
+                                    updateDeckList();
+                                }
                             }
                         }
-                    }
-                    if(not_found){
+                        if(not_found){
+                            showSimpleNotification("Sync error",getResources().getString(R.string.deck_ninja_empty));
+                        }
+                    }else{
                         showSimpleNotification("Sync error",getResources().getString(R.string.deck_ninja_empty));
                     }
-                }else{
-                    showSimpleNotification("Sync error",getResources().getString(R.string.deck_ninja_empty));
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-            }//end while
+            }
         }
     }
 
@@ -1713,52 +1728,63 @@ public class DeckPicker extends NavigationDrawerActivity implements
             try {
                 // extract the deck from the zip file
                 ZipFile mZip = new ZipFile(new File(importPath), ZipFile.OPEN_READ);
-                Utils.unzipFiles(mZip, tempDir.getAbsolutePath(), new String[]{"collection.anki2", "media"}, null);
+                Utils.unzipFiles(mZip, tempDir.getAbsolutePath(), new String[]{"collection.anki2", "media","clickf_keys"}, null);
             } catch (IOException e) {
                 Timber.e(e, "Failed to unzip apkg.");
-                showSimpleNotification("Error", getResources().getString(R.string.import_log_no_apkg));
+                showSimpleNotification("Error", getResources().getString(R.string.import_log_no_clickfc));
                 return;
             }
             String colpath = new File(tempDir, "collection.anki2").getAbsolutePath();
             if (!(new File(colpath)).exists()) {
-                showSimpleNotification("Error", getResources().getString(R.string.import_log_no_apkg));
+                showSimpleNotification("Error", getResources().getString(R.string.import_log_no_clickfc));
                 return;
             }
-            Collection tmpCol = Storage.Collection(getBaseContext(), colpath);
-            Cursor cur = tmpCol.getDb().getDatabase()
-                    .rawQuery("SELECT id FROM cards ORDER BY ord", null);
-            while (cur.moveToNext()) {
-                Card cc = tmpCol.getCard(cur.getLong(0));
-                String[] prod_id_key = Utils.splitFields(cc.getData());
 
-                //Open current products list
-                List <Produto> products_list;
-                String produts_str = ClickFCApp.getSharedPrefs(getBaseContext()).getString("ninjaproducts", "");
 
-                Gson gson = new Gson();
-                Type listOfTestObject = new TypeToken<List<Produto>>() {
-                }.getType();
+            String clickf_keys = new File(tempDir, "clickf_keys").getAbsolutePath();
+            if (!(new File(clickf_keys)).exists()) {
+                showSimpleNotification("Error", getResources().getString(R.string.import_log_no_clickfc));
+                return;
+            } else {
+                try {
+                    FileReader fileReader = new FileReader(clickf_keys);
+                    BufferedReader lerArq = new BufferedReader(fileReader);
+                    String linha = lerArq.readLine();
+                    String[] prod_id_key = Utils.splitFields(linha);
 
-                products_list = gson.fromJson(produts_str, listOfTestObject);
-                boolean not_found = true;
+                    //Open current products list
+                    List <Produto> products_list;
+                    String produts_str = ClickFCApp.getSharedPrefs(getBaseContext()).getString("ninjaproducts", "");
 
-                if((products_list !=null)&&(products_list.size()>0)){
-                    for(Produto product:products_list){
-                        if(product.isMine()){
-                            if(product.getId() == Integer.parseInt(prod_id_key[0])){
-                                not_found=false;
-                                DeckTask.launchDeckTask(DeckTask.TASK_TYPE_IMPORT_REPLACE, mImportReplaceListener, new TaskData(importPath));
-                                updateDeckList();
+                    Gson gson = new Gson();
+                    Type listOfTestObject = new TypeToken<List<Produto>>() {
+                    }.getType();
+
+                    products_list = gson.fromJson(produts_str, listOfTestObject);
+                    boolean not_found = true;
+
+                    if((products_list !=null)&&(products_list.size()>0)){
+                        for(Produto product:products_list){
+                            if(product.isMine()){
+                                if(product.getId() == Integer.parseInt(prod_id_key[0])){
+                                    not_found=false;
+                                    DeckTask.launchDeckTask(DeckTask.TASK_TYPE_IMPORT_REPLACE, mImportReplaceListener, new TaskData(importPath));
+                                    updateDeckList();
+                                }
                             }
                         }
-                    }
-                    if(not_found){
+                        if(not_found){
+                            showSimpleNotification("Sync error",getResources().getString(R.string.deck_ninja_empty));
+                        }
+                    }else{
                         showSimpleNotification("Sync error",getResources().getString(R.string.deck_ninja_empty));
                     }
-                }else{
-                    showSimpleNotification("Sync error",getResources().getString(R.string.deck_ninja_empty));
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-            }//end while
+            }
 
         }
     }

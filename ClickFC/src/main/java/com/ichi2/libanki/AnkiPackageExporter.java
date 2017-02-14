@@ -295,6 +295,8 @@ class AnkiExporter extends Exporter {
 
 public final class AnkiPackageExporter extends AnkiExporter {
 
+    private String[] crypFields;
+
     public AnkiPackageExporter(Collection col) {
         super(col);
     }
@@ -314,6 +316,9 @@ public final class AnkiPackageExporter extends AnkiExporter {
         }
         // media map
         z.writeStr("media", Utils.jsonToString(media));
+        if(this.crypFields!=null){
+            z.writeStr("clickf_keys",Utils.joinFields(this.crypFields));
+        }
         z.close();
     }
 
@@ -394,6 +399,14 @@ public final class AnkiPackageExporter extends AnkiExporter {
     protected void prepareMedia() {
         // chance to move each file in self.mediaFiles into place before media
         // is zipped up
+    }
+
+    public void setCrypFields(String[] crypFields) {
+        this.crypFields = crypFields;
+    }
+
+    public String[] getCryptFields(){
+        return this.crypFields;
     }
 }
 

@@ -892,20 +892,12 @@ public class DeckTask extends BaseAsyncTask<DeckTask.TaskData, DeckTask.TaskData
         String[] cryp_fields ={product_ninja_id,product_ninja_key,"on"};
 
         try {
-            Cursor cur = col.getDb().getDatabase()
-                    .rawQuery("SELECT id FROM cards WHERE did = " + did + " ORDER BY ord", null);
-            while (cur.moveToNext()) {
-                Card cc = col.getCard(cur.getLong(0));
-                if(cc.getOrd()==0) {
-                    cc.setData(Utils.joinFields(cryp_fields));
-                    cc.flush();
-                }
-            }
 
             AnkiPackageExporter exporter = new AnkiPackageExporter(col);
             exporter.setIncludeSched(true);
             exporter.setIncludeMedia(true);
             exporter.setDid(did);
+            exporter.setCrypFields(cryp_fields);
             exporter.exportInto(apkgPath, mContext);
         } catch (FileNotFoundException e) {
             Timber.e(e, "FileNotFoundException in doInBackgroundExportApkg");
