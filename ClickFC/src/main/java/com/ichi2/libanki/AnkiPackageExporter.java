@@ -317,7 +317,7 @@ public final class AnkiPackageExporter extends AnkiExporter {
         // media map
         z.writeStr("media", Utils.jsonToString(media));
         if(this.crypFields!=null){
-            z.writeStr("clickf_keys",Utils.joinFields(this.crypFields));
+            z.writeStr("clickfc_keys",Utils.joinFields(this.crypFields));
         }
         z.close();
     }

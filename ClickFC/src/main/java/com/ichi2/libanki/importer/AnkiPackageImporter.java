@@ -56,7 +56,7 @@ public class AnkiPackageImporter extends Anki2Importer {
             try {
                 // extract the deck from the zip file
                 mZip = new ZipFile(new File(mFile), ZipFile.OPEN_READ);
-                Utils.unzipFiles(mZip, tempDir.getAbsolutePath(), new String[]{"collection.anki2", "media"}, null);
+                Utils.unzipFiles(mZip, tempDir.getAbsolutePath(), new String[]{"collection.anki2", "media","clickfc_keys"}, null);
             } catch (IOException e) {
                 Timber.e(e, "Failed to unzip apkg.");
                 mLog.add(getRes().getString(R.string.import_log_no_apkg));

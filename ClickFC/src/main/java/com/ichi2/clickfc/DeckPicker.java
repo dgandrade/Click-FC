@@ -300,11 +300,11 @@ public class DeckPicker extends NavigationDrawerActivity implements
                 int code = result.getInt();
                 if (code == -2) {
                     // not a valid apkg file
-                    showSimpleMessageDialog(res.getString(R.string.import_log_no_apkg));
+                    showSimpleMessageDialog(res.getString(R.string.import_log_no_clickfc));
                 }
                 updateDeckList();
             } else {
-                showSimpleMessageDialog(res.getString(R.string.import_log_no_apkg), true);
+                showSimpleMessageDialog(res.getString(R.string.import_log_no_clickfc), true);
             }
         }
 
@@ -1653,7 +1653,7 @@ public class DeckPicker extends NavigationDrawerActivity implements
             try {
                 // extract the deck from the zip file
                 ZipFile mZip = new ZipFile(new File(importPath), ZipFile.OPEN_READ);
-                Utils.unzipFiles(mZip, tempDir.getAbsolutePath(), new String[]{"collection.anki2", "media","clickf_keys"}, null);
+                Utils.unzipFiles(mZip, tempDir.getAbsolutePath(), new String[]{"collection.anki2", "media","clickfc_keys"}, null);
             } catch (IOException e) {
                 Timber.e(e, "Failed to unzip apkg.");
                 showSimpleNotification("Error", getResources().getString(R.string.import_log_no_clickfc));
@@ -1666,7 +1666,7 @@ public class DeckPicker extends NavigationDrawerActivity implements
                 return;
             }
 
-            String clickf_keys = new File(tempDir, "clickf_keys").getAbsolutePath();
+            String clickf_keys = new File(tempDir, "clickfc_keys").getAbsolutePath();
             if (!(new File(clickf_keys)).exists()) {
                 showSimpleNotification("Error", getResources().getString(R.string.import_log_no_clickfc));
                 return;
@@ -1693,8 +1693,7 @@ public class DeckPicker extends NavigationDrawerActivity implements
                             if(product.isMine()){
                                 if(product.getId() == Integer.parseInt(prod_id_key[0])){
                                     not_found=false;
-                                    DeckTask.launchDeckTask(DeckTask.TASK_TYPE_IMPORT_REPLACE, mImportReplaceListener, new TaskData(importPath));
-                                    updateDeckList();
+                                    DeckTask.launchDeckTask(DeckTask.TASK_TYPE_IMPORT, mImportAddListener, new TaskData(importPath));
                                 }
                             }
                         }
@@ -1728,7 +1727,7 @@ public class DeckPicker extends NavigationDrawerActivity implements
             try {
                 // extract the deck from the zip file
                 ZipFile mZip = new ZipFile(new File(importPath), ZipFile.OPEN_READ);
-                Utils.unzipFiles(mZip, tempDir.getAbsolutePath(), new String[]{"collection.anki2", "media","clickf_keys"}, null);
+                Utils.unzipFiles(mZip, tempDir.getAbsolutePath(), new String[]{"collection.anki2", "media","clickfc_keys"}, null);
             } catch (IOException e) {
                 Timber.e(e, "Failed to unzip apkg.");
                 showSimpleNotification("Error", getResources().getString(R.string.import_log_no_clickfc));
@@ -1741,7 +1740,7 @@ public class DeckPicker extends NavigationDrawerActivity implements
             }
 
 
-            String clickf_keys = new File(tempDir, "clickf_keys").getAbsolutePath();
+            String clickf_keys = new File(tempDir, "clickfc_keys").getAbsolutePath();
             if (!(new File(clickf_keys)).exists()) {
                 showSimpleNotification("Error", getResources().getString(R.string.import_log_no_clickfc));
                 return;
