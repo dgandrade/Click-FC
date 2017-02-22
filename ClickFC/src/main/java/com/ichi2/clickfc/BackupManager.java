@@ -180,7 +180,7 @@ public class BackupManager {
                 try {
                     BufferedInputStream bis = new BufferedInputStream(new FileInputStream(colPath), BUFFER_SIZE);
                     ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(backupFile)));
-                    ZipEntry ze = new ZipEntry("collection.anki2");
+                    ZipEntry ze = new ZipEntry("collection.ankicfc");
                     zos.putNextEntry(ze);
                     int len;
                     while ((len = bis.read(buf, 0, BUFFER_SIZE)) != -1) {

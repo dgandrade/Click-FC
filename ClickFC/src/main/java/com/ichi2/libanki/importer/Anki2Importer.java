@@ -585,10 +585,13 @@ public class Anki2Importer extends Importer {
         if (!new File(dir).exists()) {
             return;
         }
-        for (File f : new File(dir).listFiles()) {
-            String fname = f.getName();
-            if (fname.startsWith("_") && ! mDst.getMedia().have(fname)) {
-                _writeDstMedia(fname, _srcMediaData(fname));
+        File[] files = new File(dir).listFiles();
+        if(files!=null) {
+            for (File f : files) {
+                String fname = f.getName();
+                if (fname.startsWith("_") && !mDst.getMedia().have(fname)) {
+                    _writeDstMedia(fname, _srcMediaData(fname));
+                }
             }
         }
     }

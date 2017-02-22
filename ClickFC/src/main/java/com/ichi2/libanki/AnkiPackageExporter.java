@@ -204,14 +204,17 @@ class AnkiExporter extends Exporter {
                 }
             }
             if (mMediaDir != null) {
-                for (File f : new File(mMediaDir).listFiles()) {
-                    String fname = f.getName();
-                    if (fname.startsWith("_")) {
-                        // Loop through every model that will be exported, and check if it contains a reference to f
-                        for (int idx = 0; idx < mid.size(); idx++) {
-                            if (_modelHasMedia(mSrc.getModels().get(idx), fname)) {
-                                media.put(fname, true);
-                                break;
+                File[] files = new File(mMediaDir).listFiles();
+                if (files!=null) {
+                    for (File f :files) {
+                        String fname = f.getName();
+                        if (fname.startsWith("_")) {
+                            // Loop through every model that will be exported, and check if it contains a reference to f
+                            for (int idx = 0; idx < mid.size(); idx++) {
+                                if (_modelHasMedia(mSrc.getModels().get(idx), fname)) {
+                                    media.put(fname, true);
+                                    break;
+                                }
                             }
                         }
                     }
@@ -327,7 +330,7 @@ public final class AnkiPackageExporter extends AnkiExporter {
         // close our deck & write it into the zip file, and reopen
         mCount = mCol.cardCount();
         mCol.close();
-        z.write(mCol.getPath(), "collection.anki2");
+        z.write(mCol.getPath(), "collection.ankicfc");
         mCol.reopen();
         // copy all media
         JSONObject media = new JSONObject();
@@ -354,9 +357,9 @@ public final class AnkiPackageExporter extends AnkiExporter {
 
     private JSONObject exportFiltered(ZipFile z, String path, Context context) throws IOException, JSONException {
         // export into the anki2 file
-        String colfile = path.replace(".clickfc", ".anki2");
+        String colfile = path.replace(".clickfc", ".ankicfc");
         super.exportInto(colfile, context);
-        z.write(colfile, "collection.anki2");
+        z.write(colfile, "collection.ankicfc");
         // and media
         prepareMedia();
         JSONObject media = new JSONObject();

@@ -769,7 +769,7 @@ public class DeckTask extends BaseAsyncTask<DeckTask.TaskData, DeckTask.TaskData
         }
 
         // from anki2.py
-        String colFile = new File(dir, "collection.anki2").getAbsolutePath();
+        String colFile = new File(dir, "collection.ankicfc").getAbsolutePath();
         ZipFile zip;
         try {
             zip = new ZipFile(new File(path), ZipFile.OPEN_READ);
@@ -779,7 +779,7 @@ public class DeckTask extends BaseAsyncTask<DeckTask.TaskData, DeckTask.TaskData
             return new TaskData(false);
         }
         try {
-            Utils.unzipFiles(zip, dir.getAbsolutePath(), new String[] { "collection.anki2", "media","clickfc_keys" }, null);
+            Utils.unzipFiles(zip, dir.getAbsolutePath(), new String[] { "collection.ankicfc", "media","clickfc_keys" }, null);
         } catch (IOException e) {
             return new TaskData(-2, null, false);
         }
