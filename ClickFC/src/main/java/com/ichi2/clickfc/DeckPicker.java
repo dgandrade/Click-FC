@@ -1653,7 +1653,7 @@ public class DeckPicker extends NavigationDrawerActivity implements
             try {
                 // extract the deck from the zip file
                 ZipFile mZip = new ZipFile(new File(importPath), ZipFile.OPEN_READ);
-                Utils.unzipFiles(mZip, tempDir.getAbsolutePath(), new String[]{"collection.ankicfc", "media","clickfc_keys"}, null);
+                Utils.unzipFiles(mZip, tempDir.getAbsolutePath(), new String[]{"collection.anki2","collection.ankicfc", "media","clickfc_keys"}, null);
             } catch (IOException e) {
                 Timber.e(e, "Failed to unzip apkg.");
                 showSimpleNotification("Error", getResources().getString(R.string.import_log_no_clickfc));
@@ -1662,51 +1662,56 @@ public class DeckPicker extends NavigationDrawerActivity implements
 
             String colpath = new File(tempDir, "collection.ankicfc").getAbsolutePath();
             if (!(new File(colpath)).exists()) {
-                showSimpleNotification("Error", getResources().getString(R.string.import_log_no_clickfc));
-                return;
-            }
+                String colpath2 = new File(tempDir, "collection.anki2").getAbsolutePath();
+                if (!(new File(colpath2)).exists()) {
+                    showSimpleNotification("Error", getResources().getString(R.string.import_log_no_clickfc));
+                    return;
+                }else{
+                    DeckTask.launchDeckTask(DeckTask.TASK_TYPE_IMPORT, mImportAddListener, new TaskData(importPath));
+                }
+            }else {
+                String clickf_keys = new File(tempDir, "clickfc_keys").getAbsolutePath();
+                if (!(new File(clickf_keys)).exists() && (new File(colpath)).exists()) {
+                    showSimpleNotification("Error", getResources().getString(R.string.import_log_no_clickfc));
+                    return;
+                } else {
+                    try {
+                        FileReader fileReader = new FileReader(clickf_keys);
+                        BufferedReader lerArq = new BufferedReader(fileReader);
+                        String linha = lerArq.readLine();
+                        String[] prod_id_key = Utils.splitFields(linha);
 
-            String clickf_keys = new File(tempDir, "clickfc_keys").getAbsolutePath();
-            if (!(new File(clickf_keys)).exists()) {
-                showSimpleNotification("Error", getResources().getString(R.string.import_log_no_clickfc));
-                return;
-            } else {
-                try {
-                    FileReader fileReader = new FileReader(clickf_keys);
-                    BufferedReader lerArq = new BufferedReader(fileReader);
-                    String linha = lerArq.readLine();
-                    String[] prod_id_key = Utils.splitFields(linha);
+                        //Open current products list
+                        List<Produto> products_list;
+                        String produts_str = ClickFCApp.getSharedPrefs(getBaseContext()).getString("ninjaproducts", "");
 
-                    //Open current products list
-                    List <Produto> products_list;
-                    String produts_str = ClickFCApp.getSharedPrefs(getBaseContext()).getString("ninjaproducts", "");
+                        Gson gson = new Gson();
+                        Type listOfTestObject = new TypeToken<List<Produto>>() {
+                        }.getType();
 
-                    Gson gson = new Gson();
-                    Type listOfTestObject = new TypeToken<List<Produto>>() {
-                    }.getType();
+                        products_list = gson.fromJson(produts_str, listOfTestObject);
+                        boolean not_found = true;
 
-                    products_list = gson.fromJson(produts_str, listOfTestObject);
-                    boolean not_found = true;
-
-                    if((products_list !=null)&&(products_list.size()>0)){
-                        for(Produto product:products_list){
-                            if(product.isMine()){
-                                if(product.getId() == Integer.parseInt(prod_id_key[0])){
-                                    not_found=false;
-                                    DeckTask.launchDeckTask(DeckTask.TASK_TYPE_IMPORT, mImportAddListener, new TaskData(importPath));
+                        if ((products_list != null) && (products_list.size() > 0)) {
+                            for (Produto product : products_list) {
+                                if (product.isMine()) {
+                                    if (product.getId() == Integer.parseInt(prod_id_key[0])) {
+                                        not_found = false;
+                                        DeckTask.launchDeckTask(DeckTask.TASK_TYPE_IMPORT, mImportAddListener, new TaskData(importPath));
+                                    }
                                 }
                             }
+                            if (not_found) {
+                                showSimpleNotification("Sync error", getResources().getString(R.string.deck_ninja_empty));
+                            }
+                        } else {
+                            showSimpleNotification("Sync error", getResources().getString(R.string.deck_ninja_empty));
                         }
-                        if(not_found){
-                            showSimpleNotification("Sync error",getResources().getString(R.string.deck_ninja_empty));
-                        }
-                    }else{
-                        showSimpleNotification("Sync error",getResources().getString(R.string.deck_ninja_empty));
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
                 }
             }
         }
@@ -1727,7 +1732,7 @@ public class DeckPicker extends NavigationDrawerActivity implements
             try {
                 // extract the deck from the zip file
                 ZipFile mZip = new ZipFile(new File(importPath), ZipFile.OPEN_READ);
-                Utils.unzipFiles(mZip, tempDir.getAbsolutePath(), new String[]{"collection.ankicfc", "media","clickfc_keys"}, null);
+                Utils.unzipFiles(mZip, tempDir.getAbsolutePath(), new String[]{"collection.anki2","collection.ankicfc", "media","clickfc_keys"}, null);
             } catch (IOException e) {
                 Timber.e(e, "Failed to unzip apkg.");
                 showSimpleNotification("Error", getResources().getString(R.string.import_log_no_clickfc));
@@ -1735,53 +1740,58 @@ public class DeckPicker extends NavigationDrawerActivity implements
             }
             String colpath = new File(tempDir, "collection.ankicfc").getAbsolutePath();
             if (!(new File(colpath)).exists()) {
-                showSimpleNotification("Error", getResources().getString(R.string.import_log_no_clickfc));
-                return;
-            }
+                String colpath2 = new File(tempDir, "collection.anki2").getAbsolutePath();
+                if (!(new File(colpath2)).exists()) {
+                    showSimpleNotification("Error", getResources().getString(R.string.import_log_no_clickfc));
+                    return;
+                }else{
+                    DeckTask.launchDeckTask(DeckTask.TASK_TYPE_IMPORT_REPLACE, mImportReplaceListener, new TaskData(importPath));
+                    updateDeckList();
+                }
+            }else {
+                String clickf_keys = new File(tempDir, "clickfc_keys").getAbsolutePath();
+                if (!(new File(clickf_keys)).exists() && (new File(colpath)).exists()) {
+                    showSimpleNotification("Error", getResources().getString(R.string.import_log_no_clickfc));
+                    return;
+                } else {
+                    try {
+                        FileReader fileReader = new FileReader(clickf_keys);
+                        BufferedReader lerArq = new BufferedReader(fileReader);
+                        String linha = lerArq.readLine();
+                        String[] prod_id_key = Utils.splitFields(linha);
 
+                        //Open current products list
+                        List<Produto> products_list;
+                        String produts_str = ClickFCApp.getSharedPrefs(getBaseContext()).getString("ninjaproducts", "");
 
-            String clickf_keys = new File(tempDir, "clickfc_keys").getAbsolutePath();
-            if (!(new File(clickf_keys)).exists()) {
-                showSimpleNotification("Error", getResources().getString(R.string.import_log_no_clickfc));
-                return;
-            } else {
-                try {
-                    FileReader fileReader = new FileReader(clickf_keys);
-                    BufferedReader lerArq = new BufferedReader(fileReader);
-                    String linha = lerArq.readLine();
-                    String[] prod_id_key = Utils.splitFields(linha);
+                        Gson gson = new Gson();
+                        Type listOfTestObject = new TypeToken<List<Produto>>() {
+                        }.getType();
 
-                    //Open current products list
-                    List <Produto> products_list;
-                    String produts_str = ClickFCApp.getSharedPrefs(getBaseContext()).getString("ninjaproducts", "");
+                        products_list = gson.fromJson(produts_str, listOfTestObject);
+                        boolean not_found = true;
 
-                    Gson gson = new Gson();
-                    Type listOfTestObject = new TypeToken<List<Produto>>() {
-                    }.getType();
-
-                    products_list = gson.fromJson(produts_str, listOfTestObject);
-                    boolean not_found = true;
-
-                    if((products_list !=null)&&(products_list.size()>0)){
-                        for(Produto product:products_list){
-                            if(product.isMine()){
-                                if(product.getId() == Integer.parseInt(prod_id_key[0])){
-                                    not_found=false;
-                                    DeckTask.launchDeckTask(DeckTask.TASK_TYPE_IMPORT_REPLACE, mImportReplaceListener, new TaskData(importPath));
-                                    updateDeckList();
+                        if ((products_list != null) && (products_list.size() > 0)) {
+                            for (Produto product : products_list) {
+                                if (product.isMine()) {
+                                    if (product.getId() == Integer.parseInt(prod_id_key[0])) {
+                                        not_found = false;
+                                        DeckTask.launchDeckTask(DeckTask.TASK_TYPE_IMPORT_REPLACE, mImportReplaceListener, new TaskData(importPath));
+                                        updateDeckList();
+                                    }
                                 }
                             }
+                            if (not_found) {
+                                showSimpleNotification("Sync error", getResources().getString(R.string.deck_ninja_empty));
+                            }
+                        } else {
+                            showSimpleNotification("Sync error", getResources().getString(R.string.deck_ninja_empty));
                         }
-                        if(not_found){
-                            showSimpleNotification("Sync error",getResources().getString(R.string.deck_ninja_empty));
-                        }
-                    }else{
-                        showSimpleNotification("Sync error",getResources().getString(R.string.deck_ninja_empty));
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
                 }
             }
 

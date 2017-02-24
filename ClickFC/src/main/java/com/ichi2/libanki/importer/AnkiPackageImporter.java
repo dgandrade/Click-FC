@@ -49,25 +49,30 @@ public class AnkiPackageImporter extends Anki2Importer {
     public void run() {
         publishProgress(0, 0, 0);
         File tempDir = new File(new File(mCol.getPath()).getParent(), "tmpzip");
-        Collection tmpCol;
+        Collection tmpCol=null;
         try {
             // We extract the zip contents into a temporary directory and do a little more
             // validation than the desktop client to ensure the extracted collection is an apkg.
             try {
                 // extract the deck from the zip file
                 mZip = new ZipFile(new File(mFile), ZipFile.OPEN_READ);
-                Utils.unzipFiles(mZip, tempDir.getAbsolutePath(), new String[]{"collection.ankicfc", "media","clickfc_keys"}, null);
+                Utils.unzipFiles(mZip, tempDir.getAbsolutePath(), new String[]{"collection.anki2","collection.ankicfc", "media","clickfc_keys"}, null);
             } catch (IOException e) {
                 Timber.e(e, "Failed to unzip apkg.");
-                mLog.add(getRes().getString(R.string.import_log_no_apkg));
+                mLog.add(getRes().getString(R.string.import_log_no_clickfc));
                 return;
             }
             String colpath = new File(tempDir, "collection.ankicfc").getAbsolutePath();
             if (!(new File(colpath)).exists()) {
-                mLog.add(getRes().getString(R.string.import_log_no_apkg));
-                return;
+                colpath = new File(tempDir, "collection.anki2").getAbsolutePath();
+                if (!(new File(colpath)).exists()) {
+                    mLog.add(getRes().getString(R.string.import_log_no_apkg));
+                    return;
+                }
             }
+
             tmpCol = Storage.Collection(mContext, colpath);
+
             try {
                 if (!tmpCol.validCollection()) {
                     mLog.add(getRes().getString(R.string.import_log_no_apkg));

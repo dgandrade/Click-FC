@@ -99,7 +99,13 @@ public class ImportDialog extends DialogFragment {
                     String[] tts = new String[fileList.size()];
                     final String[] importValues = new String[fileList.size()];
                     for (int i = 0; i < tts.length; i++) {
-                        tts[i] = fileList.get(i).getName().replace(".clickfc", "");
+                        if (fileList.get(i).getName().contains(".clickfc")){
+                            tts[i] = fileList.get(i).getName().replace(".clickfc", "");
+                        }else {
+                            if (fileList.get(i).getName().contains(".apkg")) {
+                                tts[i] = fileList.get(i).getName().replace(".apkg", "");
+                            }
+                        }
                         importValues[i] = fileList.get(i).getAbsolutePath();
                     }
                     return builder.title(res.getString(R.string.import_select_title))
@@ -115,7 +121,12 @@ public class ImportDialog extends DialogFragment {
                                         ((ImportDialogListener) getActivity()).showImportDialog(DIALOG_IMPORT_REPLACE_CONFIRM, importPath);
                                         // Otherwise we add the file since exported decks / shared decks can't be imported via replace anyway
                                     } else {
-                                        ((ImportDialogListener) getActivity()).showImportDialog(DIALOG_IMPORT_ADD_CONFIRM, importPath);
+                                        if (filenameFromPath(importPath).equals("collection.apkg")) {
+                                            ((ImportDialogListener) getActivity()).showImportDialog(DIALOG_IMPORT_REPLACE_CONFIRM, importPath);
+                                            // Otherwise we add the file since exported decks / shared decks can't be imported via replace anyway
+                                        }else {
+                                            ((ImportDialogListener) getActivity()).showImportDialog(DIALOG_IMPORT_ADD_CONFIRM, importPath);
+                                        }
                                     }
                                 }
                             })

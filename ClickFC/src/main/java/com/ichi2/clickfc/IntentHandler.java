@@ -94,7 +94,7 @@ public class IntentHandler extends Activity {
             } else if (intent.getData().getScheme().equals("file")) {
                 // When the VIEW intent is sent as a file, we can open it directly without copying from content provider                
                 String filename = intent.getData().getPath();
-                if (filename != null && filename.endsWith(".clickfc")) {
+                if (filename != null && (filename.endsWith(".clickfc")|| filename.endsWith(".apkg"))) {
                     // If file has apkg extension then send message to show Import dialog
                     sendShowImportFileDialogMsg(filename);
                     successful = true;

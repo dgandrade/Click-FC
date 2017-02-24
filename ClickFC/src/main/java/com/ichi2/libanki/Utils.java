@@ -903,7 +903,7 @@ public class Utils {
             deckList = dir.listFiles(new FileFilter(){
                 @Override
                 public boolean accept(File pathname) {
-                    return pathname.isFile() && pathname.getName().endsWith(".clickfc");
+                    return pathname.isFile() && (pathname.getName().endsWith(".clickfc")|| pathname.getName().endsWith(".apkg"));
                 }
             });
             deckCount = deckList.length;
