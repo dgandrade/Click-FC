@@ -1653,7 +1653,7 @@ public class DeckPicker extends NavigationDrawerActivity implements
             try {
                 // extract the deck from the zip file
                 ZipFile mZip = new ZipFile(new File(importPath), ZipFile.OPEN_READ);
-                Utils.unzipFiles(mZip, tempDir.getAbsolutePath(), new String[]{"collection.anki2","collection.ankicfc", "media","clickfc_keys"}, null);
+                Utils.unzipFiles(mZip, tempDir.getAbsolutePath(), new String[]{"collection.anki2","collection.ankicfc", "collection.media","clickfc_keys"}, null);
             } catch (IOException e) {
                 Timber.e(e, "Failed to unzip apkg.");
                 showSimpleNotification("Error", getResources().getString(R.string.import_log_no_clickfc));
@@ -1732,7 +1732,7 @@ public class DeckPicker extends NavigationDrawerActivity implements
             try {
                 // extract the deck from the zip file
                 ZipFile mZip = new ZipFile(new File(importPath), ZipFile.OPEN_READ);
-                Utils.unzipFiles(mZip, tempDir.getAbsolutePath(), new String[]{"collection.anki2","collection.ankicfc", "media","clickfc_keys"}, null);
+                Utils.unzipFiles(mZip, tempDir.getAbsolutePath(), new String[]{"collection.anki2","collection.ankicfc", "collection.media","clickfc_keys"}, null);
             } catch (IOException e) {
                 Timber.e(e, "Failed to unzip apkg.");
                 showSimpleNotification("Error", getResources().getString(R.string.import_log_no_clickfc));

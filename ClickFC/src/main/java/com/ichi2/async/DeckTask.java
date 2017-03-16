@@ -746,6 +746,9 @@ public class DeckTask extends BaseAsyncTask<DeckTask.TaskData, DeckTask.TaskData
     private TaskData doInBackgroundImportAdd(TaskData... params) {
         Timber.d("doInBackgroundImportAdd");
         Resources res = ClickFCApp.getInstance().getBaseContext().getResources();
+        if(params[0].getString().contains("apkg")){
+            CollectionHelper.getInstance().setCollectionFileName("collection.anki2");
+        }
         Collection col = CollectionHelper.getInstance().getCol(mContext);
         String path = params[0].getString();
         AnkiPackageImporter imp = new AnkiPackageImporter(col, path);
