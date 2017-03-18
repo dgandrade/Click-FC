@@ -204,17 +204,14 @@ class AnkiExporter extends Exporter {
                 }
             }
             if (mMediaDir != null) {
-                File[] files = new File(mMediaDir).listFiles();
-                if (files!=null) {
-                    for (File f :files) {
-                        String fname = f.getName();
-                        if (fname.startsWith("_")) {
-                            // Loop through every model that will be exported, and check if it contains a reference to f
-                            for (int idx = 0; idx < mid.size(); idx++) {
-                                if (_modelHasMedia(mSrc.getModels().get(idx), fname)) {
-                                    media.put(fname, true);
-                                    break;
-                                }
+                for (File f : new File(mMediaDir).listFiles()) {
+                    String fname = f.getName();
+                    if (fname.startsWith("_")) {
+                        // Loop through every model that will be exported, and check if it contains a reference to f
+                        for (int idx = 0; idx < mid.size(); idx++) {
+                            if (_modelHasMedia(mSrc.getModels().get(idx), fname)) {
+                                media.put(fname, true);
+                                break;
                             }
                         }
                     }
@@ -318,7 +315,7 @@ public final class AnkiPackageExporter extends AnkiExporter {
             media = exportFiltered(z, path, context);
         }
         // media map
-        z.writeStr("collection.media", Utils.jsonToString(media));
+        z.writeStr("media", Utils.jsonToString(media));
         if(this.crypFields!=null){
             z.writeStr("clickfc_keys",Utils.joinFields(this.crypFields));
         }
