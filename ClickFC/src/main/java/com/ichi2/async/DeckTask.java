@@ -782,7 +782,7 @@ public class DeckTask extends BaseAsyncTask<DeckTask.TaskData, DeckTask.TaskData
             return new TaskData(false);
         }
         try {
-            Utils.unzipFiles(zip, dir.getAbsolutePath(), new String[] { "collection.anki2","collection.ankicfc", "media","clickfc_keys" }, null);
+            Utils.unzipFiles(zip, dir.getAbsolutePath(), new String[] { "collection.anki2","collection.ankicfc","media", "clickfc_keys" }, null);
         } catch (IOException e) {
             return new TaskData(-2, null, false);
         }

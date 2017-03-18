@@ -56,7 +56,7 @@ public class AnkiPackageImporter extends Anki2Importer {
             try {
                 // extract the deck from the zip file
                 mZip = new ZipFile(new File(mFile), ZipFile.OPEN_READ);
-                Utils.unzipFiles(mZip, tempDir.getAbsolutePath(), new String[]{"collection.anki2","collection.ankicfc", "collection.media","clickfc_keys"}, null);
+                Utils.unzipFiles(mZip, tempDir.getAbsolutePath(), new String[]{"collection.anki2","collection.ankicfc", "media","clickfc_keys"}, null);
             } catch (IOException e) {
                 Timber.e(e, "Failed to unzip apkg.");
                 mLog.add(getRes().getString(R.string.import_log_no_clickfc));
@@ -141,6 +141,9 @@ public class AnkiPackageImporter extends Anki2Importer {
             try {
                 return new BufferedInputStream(mZip.getInputStream(mZip.getEntry(mNameToNum.get(fname))));
             } catch (IOException e) {
+                Timber.e("Could not extract media file " + fname + "from zip file.");
+            }catch (java.lang.NullPointerException e){
+                //TODO -- CLICKFC -- CHECK WHY
                 Timber.e("Could not extract media file " + fname + "from zip file.");
             }
         }
