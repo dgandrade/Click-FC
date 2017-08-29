@@ -55,7 +55,7 @@ import timber.log.Timber;
         reportDialogClass = AnkiDroidCrashReportDialog.class,
         httpMethod = HttpSender.Method.PUT,
         reportType = HttpSender.Type.JSON,
-        formUri = "http://clickflashcard.com/webservice/ankierror/getform.php",
+        formUri = "http://ankipro.com/webservice/ankierror/getform.php",
         mode = ReportingInteractionMode.DIALOG,
         resDialogCommentPrompt =  R.string.empty_string,
         resDialogTitle =  R.string.feedback_title,

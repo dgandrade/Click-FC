@@ -207,7 +207,7 @@ public class Connection extends BaseAsyncTask<Connection.Payload, Object, Connec
     private Payload doInBackgroundLogin(Payload data) {
         String username = (String) data.data[0];
         String password = (String) data.data[1];
-        String onlineUrl = "http://clickflashcard.com/webservice/anki.php";
+        String onlineUrl = "http://ankipro.com/ws";
         HttpURLConnection urlConnection = null;
         try {
             String charset = "UTF-8";
